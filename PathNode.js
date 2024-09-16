@@ -15,7 +15,6 @@ export class PathNode extends THREE.Mesh {
         this.size = size
         this.gridCoords = {x: widthCoords, y: heightCoords};
 
-
         this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size), 
         this.material = new THREE.MeshStandardMaterial({color: '#FF0000', wireframe: true})
 
@@ -48,10 +47,12 @@ export class PathNode extends THREE.Mesh {
             }
             
         }
-        return this.neighbors
-    }
-    
-    
 
+        return this.neighbors
+
+    }
+
+
+    
 }
 
