@@ -21,7 +21,7 @@ export class Grid extends THREE.Group {
             let vector = new THREE.Vector3(x, y, z);
             this.terrain.localToWorld(vector);
 
-            const node = new PathNode(vector.x, vector.y, vector.z, x, y, 1);
+            const node = new PathNode(vector.x, vector.y, vector.z, x, y);
 
             this.add(node);
         }
@@ -83,20 +83,17 @@ export class Grid extends THREE.Group {
             let current = openSet.reduce((lowest, node) => {
                 return fScore.get(node) < fScore.get(lowest) ? node : lowest
             }, openSet[0])
-            
-    
+
         //         if current = goal
         //             return reconstruct_path(cameFrom, current)
             if(current === goal){
-                console.log('Current:', current);
-                console.log('Goal:', goal);
-                return reconstruct_path(cameFrom, current)
+                return this.reconstruct_path(cameFrom, current)
             }
-            
+        
         //         openSet.Remove(current)
             openSet = openSet.filter((node) => node !== current)
     
-            let neighborsGridCoords = current.getNeighbors()
+            let neighborsGridCoords = current.getNeighbors(this.width)
     
             let neighbors = []
             for (let i = 0; i < neighborsGridCoords.length; i++) {
@@ -110,17 +107,20 @@ export class Grid extends THREE.Group {
                 }
                 
             }
-    
         //         for each neighbor of current
     
             for(let i = 0; i < neighbors.length; i++){
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
         //             tentative_gScore := gScore[current] + d(current, neighbor)
-                
+                if (!gScore.has(neighbors[i])) {
+                    gScore.set(neighbors[i], Infinity);
+                }
+
                 let tentative_gScore = gScore.get(current) + this.distance(current, neighbors[i])
+
         //             if tentative_gScore < gScore[neighbor]
-                if(tentative_gScore < gScore.get(neighbors[i]) || Infinity){
+                if(tentative_gScore < gScore.get(neighbors[i])){
         // This path to neighbor is better than any previous one. Record it!
         //                 cameFrom[neighbor] := current
                     cameFrom.set(neighbors[i], current)

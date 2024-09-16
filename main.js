@@ -44,7 +44,7 @@ function init() {
 
   const gui = new GUI();
   
-  terrain = new Terrain(10, 10, 10, 10, 10, 1.6, 2.4, 4.3, 134, 12.2, 100)
+  terrain = new Terrain(300, 300, 100, 100, 10, 1.6, 2.4, 4.3, 134, 12.2, 100)
   gui.add(terrain, 'octaves').name('Octaves').onChange(() => terrain.update());
   gui.add(terrain, 'persistence').name('Persistence').onChange(() => terrain.update());
   gui.add(terrain, 'lacunarity').name('Lacunarity').onChange(() => terrain.update());
@@ -56,14 +56,24 @@ function init() {
   gui.add(terrain, 'width').name('Width').onChange(() => terrain.update());
 
   
-  // scene.add(terrain)
+  scene.add(terrain)
   let grid = new Grid(terrain)
+  let start = Math.round(Math.random() * 100)
+  let finish = Math.round(Math.random() * 10000)
 
+  grid.children[start].material.wireframe = false
+  scene.add(grid.children[start])
 
-  scene.add(grid.children[0])
+  grid.children[finish].material.wireframe = false
+  scene.add(grid.children[finish])
 
-  console.log(grid.A_Star(grid.children[0], grid.children[100]));
-   
+  let path = grid.A_Star(grid.children[start], grid.children[finish]) 
+  console.log(path);
+  
+  for (let i = 0; i < path.length; i++) {
+    scene.add(path[i])
+    
+  }
 
   
 }

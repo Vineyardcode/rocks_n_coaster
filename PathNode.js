@@ -21,7 +21,7 @@ export class PathNode extends THREE.Mesh {
 
     }
 
-    getNeighbors() {
+    getNeighbors(size) {
 
         const directions = [
             { x: -this.size, y: 0 },    // Left
@@ -43,7 +43,7 @@ export class PathNode extends THREE.Mesh {
                 y: this.gridCoords.y + direction.y
             };
     
-            if (Math.abs(neighbor.x) <= 5 && Math.abs(neighbor.y) <= 5) {
+            if (Math.abs(neighbor.x) <= size/2 && Math.abs(neighbor.y) <= size/2) {
                 this.neighbors.push(neighbor);
             }
             
