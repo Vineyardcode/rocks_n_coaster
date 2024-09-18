@@ -3,101 +3,157 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { Terrain } from './Terrain';
-import { PathNode } from './PathNode';
 import { Grid } from './Grid';
+import { Path } from './Path';
+import {
+  scene,
+  camera,
+  renderer,
+  controls,
+  ambientLight,
+  directionalLight,
+  events,
+} from "./renderer.js";
 
-let container, stats;
-let camera, scene, renderer;
-let controls, terrain
+
+let terrain, grid;
+let raycaster, mouse, gui;
+let start = null
+let finish = null
+let path;
+let currentState = 'selectStart'; 
 
 init()
 
 function init() {
-  container = document.getElementById( 'container' );
 
-  renderer = new THREE.WebGLRenderer();
-  renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.setAnimationLoop( animate );
+  gui = new GUI();
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
 
-  container.appendChild( renderer.domElement );
-  
-  camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
-  camera.position.set( 30, 200, 200 );
-  scene = new THREE.Scene()
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(1, 1, 1).normalize();
-  scene.add(light);
+  terrain = new Terrain(300, 300, 100, 100, 10, 1.6, 2.4, 4.3, 100, 12.2, 100)
+  gui.add(terrain, 'octaves').name('Octaves').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'persistence').name('Persistence').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'lacunarity').name('Lacunarity').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'exponentiation').name('Exponentiation').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'noiseScale').name('Noise Scale').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'seed').name('Seed').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'noiseHeight').name('Noise Height').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'height').name('Height').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
+  gui.add(terrain, 'width').name('Width').onChange(() => {
+    terrain.update();
+    updateGrid();
+  });
 
-  controls = new OrbitControls( camera, renderer.domElement );
-  controls.maxPolarAngle = Math.PI * 0.495;
-  controls.target.set( 0, 10, 0 );
-  controls.minDistance = 40.0;
-  controls.maxDistance = 500.0;
-  controls.enableDamping = true
-  controls.update();
-
-  stats = new Stats();
-  container.appendChild( stats.dom );
-
-  window.addEventListener( 'resize', onWindowResize );
-
-  const gui = new GUI();
-  
-  terrain = new Terrain(300, 300, 100, 100, 10, 1.6, 2.4, 4.3, 134, 12.2, 100)
-  gui.add(terrain, 'octaves').name('Octaves').onChange(() => terrain.update());
-  gui.add(terrain, 'persistence').name('Persistence').onChange(() => terrain.update());
-  gui.add(terrain, 'lacunarity').name('Lacunarity').onChange(() => terrain.update());
-  gui.add(terrain, 'exponentiation').name('Exponentiation').onChange(() => terrain.update());
-  gui.add(terrain, 'noiseScale').name('noiseScale').onChange(() => terrain.update());
-  gui.add(terrain, 'seed').name('Seed').onChange(() => terrain.update());
-  gui.add(terrain, 'noiseHeight').name('noiseHeight').onChange(() => terrain.update());
-  gui.add(terrain, 'height').name('Height').onChange(() => terrain.update());
-  gui.add(terrain, 'width').name('Width').onChange(() => terrain.update());
-
-  
   scene.add(terrain)
-  let grid = new Grid(terrain)
-  let start = Math.round(Math.random() * 100)
-  let finish = Math.round(Math.random() * 10000)
-
-  grid.children[start].material.wireframe = false
-  scene.add(grid.children[start])
-
-  grid.children[finish].material.wireframe = false
-  scene.add(grid.children[finish])
-
-  let path = grid.A_Star(grid.children[start], grid.children[finish]) 
-  console.log(path);
   
-  for (let i = 0; i < path.length; i++) {
-    scene.add(path[i])
+  grid = new Grid(terrain);  
+  grid.visible = false
+  scene.add(grid);  
+
+  renderer.domElement.addEventListener('click', onClick, false);
+
+}
+
+function onClick(event) {
+  event.preventDefault();
+
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  let intersects = raycaster.intersectObject(scene, true);
+
+  if (intersects.length > 0) {
+    let object = intersects[0].object;
     
+    if (currentState === 'selectStart') {
+      handleStartSelection(object);
+    } else if (currentState === 'selectFinish') {
+      handleFinishSelection(object);
+    }
   }
 
+}
+
+function handleStartSelection(object) {
+  if(path){
+    scene.remove(path)
+  }
+  
+  object.visible = true;
+  object.material.wireframe = false;
+  scene.add(object)
+  start = object;
+  currentState = 'selectFinish'; 
   
 }
 
-function onWindowResize() {
-
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize( window.innerWidth, window.innerHeight );
-
+function updateGrid() {
+  if (grid) {
+    scene.remove(grid); 
+  }
+  if(path){
+    scene.remove(path)
+  }
+  
+  grid = new Grid(terrain);  
+  grid.visible = false
+  scene.add(grid);  
 }
 
-function animate() {
+function handleFinishSelection(object) {
+  object.visible = true;
+  object.material.wireframe = false;
+  finish = object
 
-  render();
-  stats.update();
+  if (start && finish) {
+    
+    try {
 
+
+      path = new Path(start, finish, grid)
+      scene.add(path)
+
+      // path = grid.A_Star(start, finish) 
+
+      // for (let i = 0; i < path.length; i++){
+      //   scene.add(path[i])
+      // }
+    
+
+    } catch (error) {
+      console.error("Error creating path:", error);
+    }
+
+    start = null;
+    finish = null;
+    currentState = 'selectStart'; 
+  }
 }
-
-function render() {
-
-  renderer.render( scene, camera );
-
-}
-
 

@@ -14,13 +14,14 @@ export class PathNode extends THREE.Mesh {
         this.cameFrom = null;  
         this.size = size
         this.gridCoords = {x: widthCoords, y: heightCoords};
-
+        this.name = 'PathNode'
+        
         this.geometry = new THREE.BoxGeometry(this.size, this.size, this.size), 
         this.material = new THREE.MeshStandardMaterial({color: '#FF0000', wireframe: true})
 
     }
 
-    getNeighbors(size) {
+    getNeighbors(gridSize) {
 
         const directions = [
             { x: -this.size, y: 0 },    // Left
@@ -42,7 +43,7 @@ export class PathNode extends THREE.Mesh {
                 y: this.gridCoords.y + direction.y
             };
     
-            if (Math.abs(neighbor.x) <= size/2 && Math.abs(neighbor.y) <= size/2) {
+            if (Math.abs(neighbor.x) <= gridSize/2 && Math.abs(neighbor.y) <= gridSize/2) {
                 this.neighbors.push(neighbor);
             }
             
@@ -53,6 +54,5 @@ export class PathNode extends THREE.Mesh {
     }
 
 
-    
 }
 

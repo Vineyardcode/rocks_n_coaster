@@ -19,7 +19,6 @@ export class Grid extends THREE.Group {
             const y = this.vertices[i + 1];
             const z = this.vertices[i + 2];
 
-
             let vector = new THREE.Vector3(x, y, z);
             this.terrain.localToWorld(vector);
 
@@ -32,16 +31,20 @@ export class Grid extends THREE.Group {
     reconstruct_path(cameFrom, current){
         // total_path := {current}
         let totalPath = [current]
+
         // while current in cameFrom.Keys:
         while(cameFrom.has(current)){
+
         // current := cameFrom[current]
             current = cameFrom.get(current)
+
         // total_path.prepend(current)
             totalPath.unshift(current)
         }
+
         // return total_path
         return totalPath 
-        
+
     }
 
     distance(current, neighbor) {
@@ -56,6 +59,7 @@ export class Grid extends THREE.Group {
         // A* finds a path from start to goal.
         // h is the heuristic function. h(n) estimates the cost to reach goal from node n.
     A_Star(start, goal){
+
         // The set of discovered nodes that may need to be (re-)expanded.
         // Initially, only the start node is known.
         // This is usually implemented as a min-heap or priority queue rather than a hash-set.
@@ -107,8 +111,10 @@ export class Grid extends THREE.Group {
                     null
                 }
             }
+            
         // for each neighbor of current
             for(let i = 0; i < neighbors.length; i++){
+
         // d(current,neighbor) is the weight of the edge from current to neighbor
         // tentative_gScore is the distance from start to the neighbor through current
         // tentative_gScore := gScore[current] + d(current, neighbor)
@@ -120,15 +126,20 @@ export class Grid extends THREE.Group {
 
         // if tentative_gScore < gScore[neighbor]
                 if(tentative_gScore < gScore.get(neighbors[i])){
+
         // This path to neighbor is better than any previous one. Record it!
         // cameFrom[neighbor] := current
                     cameFrom.set(neighbors[i], current)
+
         // gScore[neighbor] := tentative_gScore
                     gScore.set(neighbors[i], tentative_gScore)
+
         // fScore[neighbor] := tentative_gScore + h(neighbor)
                     fScore.set(neighbors[i], tentative_gScore + this.distance(start, neighbors[i]))
+
         // if neighbor not in openSet
                     if(!openSet.includes(neighbors[i])){
+
         // openSet.add(neighbor)
                         openSet.push(neighbors[i])
                     }
@@ -138,5 +149,6 @@ export class Grid extends THREE.Group {
         // Open set is empty but goal was never reached
         // return failure
         return null 
+
     }
 }

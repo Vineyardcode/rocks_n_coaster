@@ -82,5 +82,4 @@ export class Terrain extends THREE.Mesh {
 
     }
 
-
 }
