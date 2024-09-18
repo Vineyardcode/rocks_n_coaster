@@ -105,12 +105,13 @@ function handleStartSelection(object) {
   if(path){
     scene.remove(path)
   }
-  
-  object.visible = true;
-  object.material.wireframe = false;
-  scene.add(object)
-  start = object;
-  currentState = 'selectFinish'; 
+  if(object.name == 'PathNode'){
+    object.visible = true;
+    object.material.wireframe = false;
+    scene.add(object)
+    start = object;
+    currentState = 'selectFinish'; 
+  }
   
 }
 
@@ -128,24 +129,19 @@ function updateGrid() {
 }
 
 function handleFinishSelection(object) {
-  object.visible = true;
-  object.material.wireframe = false;
-  finish = object
+  if (object.name == 'PathNode'){
+
+    object.visible = true;
+    object.material.wireframe = false;
+    finish = object
+  }
 
   if (start && finish) {
     
     try {
 
-
       path = new Path(start, finish, grid)
       scene.add(path)
-
-      // path = grid.A_Star(start, finish) 
-
-      // for (let i = 0; i < path.length; i++){
-      //   scene.add(path[i])
-      // }
-    
 
     } catch (error) {
       console.error("Error creating path:", error);
